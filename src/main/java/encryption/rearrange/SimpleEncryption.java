@@ -16,7 +16,6 @@ import static encryption.rearrange.GlobalConfiguration.*;
 public final class SimpleEncryption {
     private final short degree;
     private final Set<Integer> sequence;
-
     // Contains idx of whitespaces and the length of the string
     private String metaData;
 
