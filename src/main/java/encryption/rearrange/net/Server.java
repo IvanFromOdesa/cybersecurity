@@ -40,6 +40,11 @@ public class Server extends EntityModel {
                     System.out.println("Server shutdown...");
                     break;
                 }
+                if (msg.contains(META_DATA)) {
+                    key.setMetaData(msg.replace(META_DATA, ""));
+                    out.println(SUCCESS);
+                    continue;
+                }
                 String decryptedMsg = SimpleEncryption.Decryptor.decrypt(msg, key);
                 System.out.println("Sending decrypted message back...");
                 out.println(decryptedMsg);

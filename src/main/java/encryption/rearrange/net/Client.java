@@ -79,10 +79,13 @@ public class Client extends EntityModel {
                 System.out.println("Client shutdown...");
                 break;
             }
-            String encrypted = encrypt(msg, client.getKey());
-            System.out.println("Sending the message to the server...");
-            String response = client.sendMessage(encrypted);
-            System.out.println("Response from the server: " + response);
+            String status = client.sendMessage(META_DATA + prepareMetaData(msg));
+            if (SUCCESS.equals(status)) {
+                String encrypted = encrypt(msg, client.getKey());
+                System.out.println("Sending the message to the server...");
+                String response = client.sendMessage(encrypted);
+                System.out.println("Response from the server: " + response);
+            }
         }
         client.stop();
     }
@@ -110,6 +113,10 @@ public class Client extends EntityModel {
 
     private static String encrypt(String msg, SimpleEncryption key) {
         return SimpleEncryption.Encryptor.encrypt(msg, key);
+    }
+
+    private static String prepareMetaData(String msg) {
+        return SimpleEncryption.Encryptor.prepareMetaData(msg);
     }
 
     private static String[] getTable(String s) {

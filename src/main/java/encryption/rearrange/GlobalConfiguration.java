@@ -15,5 +15,10 @@ public class GlobalConfiguration {
     public static final String SET_KEY = "!key";
     public static final String RANDOM_KEY = "!rkey";
     public static final String ERROR_KEY = "!error";
+    public static final String SUCCESS = "!acc";
+    public static final String META_DATA = "!meta";
     public static final String WHITESPACE = " ";
+    public static final String DOLLAR_SIGN = "$";
+    public static final String HASH_SIGN = "#";
+    public static final String DIVIDE_SIGN = "/";
 }

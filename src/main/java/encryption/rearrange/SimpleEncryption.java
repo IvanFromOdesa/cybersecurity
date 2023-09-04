@@ -1,16 +1,23 @@
 package encryption.rearrange;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public record SimpleEncryption(short degree, Set<Integer> sequence) {
+import static encryption.rearrange.GlobalConfiguration.*;
 
-    // TODO: we need to give additional info about the whitespace indexes and the length of initial string
-    //  to clear garbage and add whitespaces back when decrypting
-    // E.g. SAMPLE TWO -> LASEMrWTaO#10$6.
-    // 10 - the length of the string,
-    // 6 - index of a whitespace.
-    // Probably need to encrypt this info either.
+public final class SimpleEncryption {
+    private final short degree;
+    private final Set<Integer> sequence;
+
+    // Contains idx of whitespaces and the length of the string
+    private String metaData;
+
+    public SimpleEncryption(short degree, Set<Integer> sequence) {
+        this.degree = degree;
+        this.sequence = sequence;
+    }
+
     public static class Encryptor {
         /**
          * Encrypts message using the order defined in the key.
@@ -26,7 +33,7 @@ public record SimpleEncryption(short degree, Set<Integer> sequence) {
             List<String> subs = new ArrayList<>();
             short degree = key.degree();
             // Sampletext.
-            msg = String.join("", msg.split(" "));
+            msg = String.join("", msg.split(WHITESPACE));
             // Sampletext.ewrq
             msg = addGarbageIfNeeded(msg, degree);
             // Sampl, etext, .ewrq
@@ -50,6 +57,20 @@ public record SimpleEncryption(short degree, Set<Integer> sequence) {
 
             // -> lpSamtxeteqr.ew
             return String.join("", result);
+        }
+
+        public static String prepareMetaData(String msg) {
+            StringBuilder res = new StringBuilder();
+            int initialSize = msg.length();
+            res.append(DOLLAR_SIGN);
+            while (msg.contains(WHITESPACE)) {
+                int idx = msg.indexOf(WHITESPACE);
+                res.append(idx);
+                res.append(DIVIDE_SIGN);
+                msg = msg.replaceFirst(WHITESPACE, "");
+            }
+            res.append(HASH_SIGN).append(initialSize);
+            return res.toString();
         }
 
         private static String addGarbageIfNeeded(String msg, short degree) {
@@ -88,7 +109,23 @@ public record SimpleEncryption(short degree, Set<Integer> sequence) {
                 return res.toString();
             }).toList();
             // -> Sampletext.ewrq
-            return String.join("", result);
+            return withMetaData(String.join("", result), key);
+        }
+
+        private static String withMetaData(String msg, SimpleEncryption key) {
+            try {
+                StringBuilder res = new StringBuilder(msg);
+                String metaData = key.getMetaData();
+                String whitespaces = metaData.substring(metaData.indexOf(DOLLAR_SIGN) + 1, metaData.lastIndexOf(HASH_SIGN));
+                AtomicInteger n = new AtomicInteger();
+                Arrays.stream(whitespaces.split(DIVIDE_SIGN)).mapToInt(Integer::parseInt).forEach(s -> res.insert(s + n.getAndIncrement(), WHITESPACE));
+                String s = metaData.substring(metaData.indexOf(HASH_SIGN) + 1);
+                int initLength = Integer.parseInt(s);
+                return res.substring(0, initLength);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                return msg;
+            }
         }
     }
 
@@ -97,4 +134,42 @@ public record SimpleEncryption(short degree, Set<Integer> sequence) {
             subs.add(msg.substring(i, Math.min(msg.length(), i + degree)));
         }
     }
+
+    public short degree() {
+        return degree;
+    }
+
+    public Set<Integer> sequence() {
+        return sequence;
+    }
+
+    public String getMetaData() {
+        return metaData;
+    }
+
+    public void setMetaData(String metaData) {
+        this.metaData = metaData;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (SimpleEncryption) obj;
+        return this.degree == that.degree &&
+                Objects.equals(this.sequence, that.sequence);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(degree, sequence);
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleEncryption[" +
+                "degree=" + degree + ", " +
+                "sequence=" + sequence + ']';
+    }
+
 }
