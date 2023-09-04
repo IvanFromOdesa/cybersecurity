@@ -1,6 +1,13 @@
 package encryption.rearrange;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -113,6 +120,9 @@ public final class SimpleEncryption {
             try {
                 StringBuilder res = new StringBuilder(msg);
                 String metaData = key.getMetaData();
+                if (metaData == null || "".equals(metaData)) {
+                    return msg;
+                }
                 String whitespaces = metaData.substring(metaData.indexOf(DOLLAR_SIGN) + 1, metaData.lastIndexOf(HASH_SIGN));
                 AtomicInteger n = new AtomicInteger();
                 Arrays.stream(whitespaces.split(DIVIDE_SIGN)).mapToInt(Integer::parseInt).forEach(s -> res.insert(s + n.getAndIncrement(), WHITESPACE));

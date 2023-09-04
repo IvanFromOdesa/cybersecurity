@@ -31,16 +31,13 @@ public class Server extends EntityModel {
                 if (msg.contains(SET_KEY)) {
                     setGivenKeyResponse(msg);
                     continue;
-                }
-                if (msg.contains(RANDOM_KEY)) {
+                } else if (msg.contains(RANDOM_KEY)) {
                     setRandomKeyResponse(msg);
                     continue;
-                }
-                if (msg.contains(STOP_WORD)) {
+                } else if (msg.contains(STOP_WORD)) {
                     System.out.println("Server shutdown...");
                     break;
-                }
-                if (msg.contains(META_DATA)) {
+                } else if (msg.contains(META_DATA)) {
                     key.setMetaData(msg.replace(META_DATA, ""));
                     out.println(SUCCESS);
                     continue;
