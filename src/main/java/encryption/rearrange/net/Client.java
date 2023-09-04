@@ -24,6 +24,10 @@ public class Client extends EntityModel {
         return client;
     }
 
+    private Client() {
+
+    }
+
     @Override
     public void start(int port) {
         try {
