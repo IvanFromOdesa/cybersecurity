@@ -21,9 +21,6 @@ public final class SimpleEncryption {
     public static class Encryptor {
         /**
          * Encrypts message using the order defined in the key.
-         * <br/>
-         * E.g. SAMPLE (3, 2, 5, 1, 4) -> LASEM.
-         * <br/>
          * Adds garbage chars to the end of the string if needed.
          * @return encrypted string
          */
