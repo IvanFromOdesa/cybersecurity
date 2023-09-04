@@ -127,8 +127,7 @@ public final class SimpleEncryption {
                 AtomicInteger n = new AtomicInteger();
                 Arrays.stream(whitespaces.split(DIVIDE_SIGN)).mapToInt(Integer::parseInt).forEach(s -> res.insert(s + n.getAndIncrement(), WHITESPACE));
                 String s = metaData.substring(metaData.indexOf(HASH_SIGN) + 1);
-                int initLength = Integer.parseInt(s);
-                return res.substring(0, initLength);
+                return res.substring(0, Integer.parseInt(s));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 return msg;
