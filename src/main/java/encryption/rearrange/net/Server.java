@@ -16,6 +16,7 @@ import static encryption.rearrange.GlobalConfiguration.*;
 public class Server extends EntityModel {
     private ServerSocket serverSocket;
 
+    @Override
     public void start(int port) {
         try {
             serverSocket = new ServerSocket(port);

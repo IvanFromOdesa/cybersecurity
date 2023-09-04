@@ -24,6 +24,7 @@ public class Client extends EntityModel {
         return client;
     }
 
+    @Override
     public void start(int port) {
         try {
             clientSocket = new Socket(IP, port);
@@ -44,6 +45,7 @@ public class Client extends EntityModel {
         return "";
     }
 
+    @Override
     public void stop() {
         try {
             in.close();
