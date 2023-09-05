@@ -25,6 +25,6 @@ public class GlobalConfiguration {
     public static final String DIVIDE_SIGN = "/";
     public static final String EXCLAMATION_MARK = "!";
     public static final Set<String> AVAILABLE_COMMANDS = new HashSet<>(Arrays.asList(
-            STOP_WORD, SET_KEY, RANDOM_KEY
+            STOP_WORD, SET_KEY, RANDOM_KEY, META_DATA
     ));
 }

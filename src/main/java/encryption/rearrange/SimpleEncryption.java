@@ -123,13 +123,15 @@ public final class SimpleEncryption {
                     return msg;
                 }
                 String whitespaces = metaData.substring(metaData.indexOf(DOLLAR_SIGN) + 1, metaData.lastIndexOf(HASH_SIGN));
-                AtomicInteger n = new AtomicInteger();
-                Arrays.stream(whitespaces.split(DIVIDE_SIGN)).mapToInt(Integer::parseInt).forEach(s -> res.insert(s + n.getAndIncrement(), WHITESPACE));
+                if (!"".equals(whitespaces)) {
+                    AtomicInteger n = new AtomicInteger();
+                    Arrays.stream(whitespaces.split(DIVIDE_SIGN)).mapToInt(Integer::parseInt).forEach(s -> res.insert(s + n.getAndIncrement(), WHITESPACE));
+                }
                 String s = metaData.substring(metaData.indexOf(HASH_SIGN) + 1);
                 key.clearMetaData();
                 return res.substring(0, Integer.parseInt(s));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.err.println(e.getMessage());
                 return msg;
             }
         }

@@ -22,7 +22,7 @@ public abstract class EntityModel {
             int[] res = Arrays.stream(table).mapToInt(Integer::parseInt).toArray();
             order = Arrays.stream(res).boxed().toArray(Integer[]::new);
         } catch (NumberFormatException e) {
-            System.out.println("Error generating a key.");
+            System.err.println("Error generating a key.");
             return STANDARD_KEY;
         }
         System.out.println("Key generated successfully: " + Arrays.toString(order));
