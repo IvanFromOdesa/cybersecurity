@@ -28,27 +28,27 @@ public class Server extends EntityModel {
             String msg;
             while ((msg = in.readLine()) != null) {
                 System.out.println("Message from the client: " + msg);
-                if (msg.startsWith(EXCLAMATION_MARK) && AVAILABLE_COMMANDS.stream().noneMatch(msg::contains)) {
-                    out.println(ERROR_KEY + " Unrecognized command.");
-                    continue;
-                } else if (msg.contains(SET_KEY)) {
-                    setGivenKeyResponse(msg);
-                    continue;
-                } else if (msg.contains(RANDOM_KEY)) {
-                    setRandomKeyResponse(msg);
-                    continue;
-                } else if (msg.contains(STOP_WORD)) {
-                    System.out.println("Server shutdown...");
-                    break;
-                } else if (msg.contains(META_DATA) && key.isNullMetaData()) {
-                    key.setMetaData(msg.replace(META_DATA, ""));
-                    out.println(SUCCESS);
-                    continue;
+                if (msg.startsWith(EXCLAMATION_MARK)) {
+                    if (AVAILABLE_COMMANDS.stream().noneMatch(msg::contains)) {
+                        // Even if the client gets modified, the server won't proceed
+                        out.println(ERROR_KEY + " Unrecognized command.");
+                    } else if (msg.contains(SET_KEY)) {
+                        setGivenKeyResponse(msg);
+                    } else if (msg.contains(RANDOM_KEY)) {
+                        setRandomKeyResponse(msg);
+                    } else if (msg.contains(STOP_WORD)) {
+                        System.out.println("Server shutdown...");
+                        break;
+                    } else if (msg.contains(META_DATA) && key.isNullMetaData()) {
+                        key.setMetaData(msg.replace(META_DATA, ""));
+                        out.println(SUCCESS);
+                    }
+                } else {
+                    String decryptedMsg = SimpleEncryption.Decryptor.decrypt(msg, key);
+                    System.out.println("Sending decrypted message back...");
+                    out.println(decryptedMsg);
+                    System.out.println("Sent: " + decryptedMsg);
                 }
-                String decryptedMsg = SimpleEncryption.Decryptor.decrypt(msg, key);
-                System.out.println("Sending decrypted message back...");
-                out.println(decryptedMsg);
-                System.out.println("Sent: " + decryptedMsg);
             }
             stop();
         } catch (Exception e) {
@@ -72,7 +72,19 @@ public class Server extends EntityModel {
     protected void setRandomKeyResponse(String msg) {
         List<String> res;
         Random random = new Random();
-        int degree = random.nextInt(MIN_DEGREE, MAX_DEGREE + 1);
+        int degree;
+        if (msg.matches(RANDOM_KEY + WHITESPACE + "\\d+")) {
+            try {
+                degree = Integer.parseInt(msg.replace(RANDOM_KEY + WHITESPACE, ""));
+            } catch (NumberFormatException e) {
+                out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
+                System.err.println(e.getMessage());
+                return;
+            }
+        } else {
+            System.out.println("Generating with a random degree...");
+            degree = random.nextInt(MIN_DEGREE, MAX_DEGREE + 1);
+        }
         res = new LinkedList<>();
         while (res.size() != degree) {
             int idx = random.nextInt(1, degree + 1);

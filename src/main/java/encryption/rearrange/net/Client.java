@@ -66,25 +66,26 @@ public class Client extends EntityModel {
         String msg;
         while ((msg = scanner.nextLine()) != null) {
             Client client = getInstance();
-            if (msg.contains(SET_KEY)) {
-                client.setGivenKeyResponse(msg);
-                continue;
-            } else if (msg.contains(RANDOM_KEY)) {
-                client.setRandomKeyResponse(msg);
-                continue;
-            } else if (STOP_WORD.equals(msg)) {
-                client.sendMessage(msg);
-                System.out.println("Client shutdown...");
-                break;
-            }
-            String status = client.sendMessage(META_DATA + prepareMetaData(msg));
-            if (SUCCESS.equals(status)) {
-                String encrypted = encrypt(msg, client.getKey());
-                System.out.println("Sending the message to the server...");
-                String response = client.sendMessage(encrypted);
-                System.out.println("Response from the server: " + response);
-            } else if (status.contains(ERROR_KEY)) {
-                System.out.println(status.replace(ERROR_KEY + WHITESPACE, ""));
+            if (msg.startsWith(EXCLAMATION_MARK)) {
+                if (msg.contains(SET_KEY)) {
+                    client.setGivenKeyResponse(msg);
+                } else if (msg.contains(RANDOM_KEY)) {
+                    client.setRandomKeyResponse(msg);
+                } else if (STOP_WORD.equals(msg)) {
+                    client.sendMessage(msg);
+                    System.out.println("Client shutdown...");
+                    break;
+                }
+            } else {
+                String status = client.sendMessage(META_DATA + prepareMetaData(msg));
+                if (SUCCESS.equals(status)) {
+                    String encrypted = encrypt(msg, client.getKey());
+                    System.out.println("Sending the message to the server...");
+                    String response = client.sendMessage(encrypted);
+                    System.out.println("Response from the server: " + response);
+                } else if (status.contains(ERROR_KEY)) {
+                    System.out.println(status.replace(ERROR_KEY + WHITESPACE, ""));
+                }
             }
         }
         client.stop();
