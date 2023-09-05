@@ -28,7 +28,10 @@ public class Server extends EntityModel {
             String msg;
             while ((msg = in.readLine()) != null) {
                 System.out.println("Message from the client: " + msg);
-                if (msg.contains(SET_KEY)) {
+                if (msg.startsWith(EXCLAMATION_MARK) && !AVAILABLE_COMMANDS.contains(msg)) {
+                    out.println(ERROR_KEY + " Unrecognized command.");
+                    continue;
+                } else if (msg.contains(SET_KEY)) {
                     setGivenKeyResponse(msg);
                     continue;
                 } else if (msg.contains(RANDOM_KEY)) {

@@ -111,7 +111,7 @@ public final class SimpleEncryption {
                 // Sampl, etext, .ewrq
                 return res.toString();
             }).toList();
-            // -> Sampletext.ewrq
+            // -> Sampletext.ewrq -> Sample text.
             return withMetaData(String.join("", result), key);
         }
 
@@ -126,6 +126,7 @@ public final class SimpleEncryption {
                 AtomicInteger n = new AtomicInteger();
                 Arrays.stream(whitespaces.split(DIVIDE_SIGN)).mapToInt(Integer::parseInt).forEach(s -> res.insert(s + n.getAndIncrement(), WHITESPACE));
                 String s = metaData.substring(metaData.indexOf(HASH_SIGN) + 1);
+                key.clearMetaData();
                 return res.substring(0, Integer.parseInt(s));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -150,6 +151,11 @@ public final class SimpleEncryption {
 
     public String getMetaData() {
         return metaData;
+    }
+
+    // After the message is successfully decrypted, we clear the metadata
+    public void clearMetaData() {
+        metaData = null;
     }
 
     public void setMetaData(String metaData) {

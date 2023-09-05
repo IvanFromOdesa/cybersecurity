@@ -69,12 +69,10 @@ public class Client extends EntityModel {
             if (msg.contains(SET_KEY)) {
                 client.setGivenKeyResponse(msg);
                 continue;
-            }
-            if (msg.contains(RANDOM_KEY)) {
+            } else if (msg.contains(RANDOM_KEY)) {
                 client.setRandomKeyResponse(msg);
                 continue;
-            }
-            if (STOP_WORD.equals(msg)) {
+            } else if (STOP_WORD.equals(msg)) {
                 client.sendMessage(msg);
                 System.out.println("Client shutdown...");
                 break;
@@ -85,6 +83,8 @@ public class Client extends EntityModel {
                 System.out.println("Sending the message to the server...");
                 String response = client.sendMessage(encrypted);
                 System.out.println("Response from the server: " + response);
+            } else if (status.contains(ERROR_KEY)) {
+                System.out.println(status.replace(ERROR_KEY + WHITESPACE, ""));
             }
         }
         client.stop();
