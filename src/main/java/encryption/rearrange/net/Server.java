@@ -40,7 +40,7 @@ public class Server extends EntityModel {
                 } else if (msg.contains(STOP_WORD)) {
                     System.out.println("Server shutdown...");
                     break;
-                } else if (msg.contains(META_DATA)) {
+                } else if (msg.contains(META_DATA) && key.isNullMetaData()) {
                     key.setMetaData(msg.replace(META_DATA, ""));
                     out.println(SUCCESS);
                     continue;

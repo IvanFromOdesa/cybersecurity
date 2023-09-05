@@ -49,9 +49,7 @@ public final class SimpleEncryption {
                 List<Integer> order = new ArrayList<>(key.sequence());
 
                 for (int i = 0; i < chars.length; i++) {
-                    int index = order.get(i);
-                    char c = chars[i];
-                    res.put(index, c);
+                    res.put(order.get(i), chars[i]);
                 }
 
                 // Sampl -> lpSam, etext -> txete, .ewrq -> qr.ew
@@ -117,11 +115,11 @@ public final class SimpleEncryption {
 
         private static String withMetaData(String msg, SimpleEncryption key) {
             try {
-                StringBuilder res = new StringBuilder(msg);
-                String metaData = key.getMetaData();
-                if (metaData == null || "".equals(metaData)) {
+                if (key.isNullMetaData()) {
                     return msg;
                 }
+                StringBuilder res = new StringBuilder(msg);
+                String metaData = key.getMetaData();
                 String whitespaces = metaData.substring(metaData.indexOf(DOLLAR_SIGN) + 1, metaData.lastIndexOf(HASH_SIGN));
                 if (!"".equals(whitespaces)) {
                     AtomicInteger n = new AtomicInteger();
@@ -153,6 +151,10 @@ public final class SimpleEncryption {
 
     public String getMetaData() {
         return metaData;
+    }
+
+    public boolean isNullMetaData() {
+        return metaData == null || "".equals(metaData);
     }
 
     // After the message is successfully decrypted, we clear the metadata
