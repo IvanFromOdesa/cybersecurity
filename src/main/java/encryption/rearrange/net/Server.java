@@ -72,8 +72,9 @@ public class Server extends EntityModel {
     @Override
     protected void setGivenKeyResponse(String msg) {
         msg = msg.replace(SET_KEY + WHITESPACE, "");
+        SimpleEncryption oldKey = key;
         key = generateKey(msg.split(WHITESPACE));
-        if (key == STANDARD_KEY) {
+        if (key == oldKey) {
             out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
             System.out.println("Key set.");

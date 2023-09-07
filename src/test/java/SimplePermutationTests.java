@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static encryption.rearrange.GlobalConfiguration.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SimplePermutationTests {
     private static Thread serverThread;
@@ -37,6 +38,8 @@ public class SimplePermutationTests {
 
     @Test
     void shouldCommunicateSuccess() {
+        System.out.println("Client: " + client.getKey());
+        System.out.println("Server: " + server.getKey());
         assertSentEqualsResponse(client);
     }
 
@@ -56,6 +59,21 @@ public class SimplePermutationTests {
         client.setKey(key);
         assertEquals(server.getKey(), client.getKey());
         assertSentEqualsResponse(client);
+    }
+
+    @Test
+    void shouldCommunicateSuccessSetRKeyWithDegree() {
+        short degree = 7;
+        String response = client.sendMessage(RANDOM_KEY + WHITESPACE + degree);
+        SimpleEncryption key = client.generateKey(response);
+        assertEquals(degree, key.degree());
+        assertEquals(server.getKey(), key);
+    }
+
+    @Test
+    void shouldCommunicateFailSetInvalidKey() {
+        String response = client.sendMessage(SET_KEY + "abc");
+        assertTrue(response.contains(ERROR_KEY));
     }
 
     private void assertSentEqualsResponse(Client client) {

@@ -23,7 +23,7 @@ public abstract class EntityModel {
             order = Arrays.stream(res).boxed().toArray(Integer[]::new);
         } catch (NumberFormatException e) {
             System.err.println("Error generating a key.");
-            return STANDARD_KEY;
+            return getKey();
         }
         System.out.println("Key generated successfully: " + Arrays.toString(order));
         return new SimpleEncryption((short) order.length, new LinkedHashSet<>(Arrays.asList(order)));
