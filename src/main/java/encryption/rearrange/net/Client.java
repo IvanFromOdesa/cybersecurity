@@ -1,5 +1,6 @@
 package encryption.rearrange.net;
 
+import encryption.commons.net.EntityModel;
 import encryption.rearrange.SimpleEncryption;
 
 import java.io.BufferedReader;
@@ -127,7 +128,7 @@ public class Client extends EntityModel {
     }
 
     public SimpleEncryption generateKey(String msg) {
-        return generateKey(getTable(msg));
+        return SimpleEncryption.generateKey(this, getTable(msg));
     }
 
     private static String encrypt(String msg, SimpleEncryption key) {

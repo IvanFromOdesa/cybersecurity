@@ -1,11 +1,13 @@
 package encryption.rearrange;
 
-import encryption.commons.BaseEncryption;
-import encryption.commons.IDecryptor;
-import encryption.commons.IEncryptor;
+import encryption.commons.crypt.BaseEncryption;
+import encryption.commons.crypt.IDecryptor;
+import encryption.commons.crypt.IEncryptor;
+import encryption.commons.net.EntityModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -145,6 +147,18 @@ public class SimpleEncryption extends BaseEncryption {
         for (int i = 0; i < msg.length(); i += degree) {
             subs.add(msg.substring(i, Math.min(msg.length(), i + degree)));
         }
+    }
+
+    public static SimpleEncryption generateKey(EntityModel entity, String[] table) {
+        Integer[] order;
+        try {
+            order = Arrays.stream(table).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new);
+        } catch (NumberFormatException e) {
+            System.err.println("Error generating a key.");
+            return entity.getKey();
+        }
+        System.out.println("Key generated successfully: " + Arrays.toString(order));
+        return new SimpleEncryption((short) order.length, new LinkedHashSet<>(Arrays.asList(order)));
     }
 
     public short degree() {

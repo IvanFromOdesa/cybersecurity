@@ -1,5 +1,6 @@
 package encryption.rearrange.net;
 
+import encryption.commons.net.EntityModel;
 import encryption.rearrange.SimpleEncryption;
 
 import java.io.BufferedReader;
@@ -73,7 +74,7 @@ public class Server extends EntityModel {
     protected void setGivenKeyResponse(String msg) {
         msg = msg.replace(SET_KEY + WHITESPACE, "");
         SimpleEncryption oldKey = key;
-        key = generateKey(msg.split(WHITESPACE));
+        key = SimpleEncryption.generateKey(this, msg.split(WHITESPACE));
         if (key == oldKey) {
             out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
@@ -107,7 +108,7 @@ public class Server extends EntityModel {
                 res.add(o);
             }
         }
-        key = generateKey(res.toArray(String[]::new));
+        key = SimpleEncryption.generateKey(this, res.toArray(String[]::new));
         if (key == STANDARD_KEY) {
             out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
