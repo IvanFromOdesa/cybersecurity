@@ -14,7 +14,7 @@ import java.util.Random;
 
 import static encryption.rearrange.GlobalConfiguration.*;
 
-public class Server extends EntityModel {
+public class Server extends EntityModel<SimpleEncryption> {
     private ServerSocket serverSocket;
     private static Server server;
 

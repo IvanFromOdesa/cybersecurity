@@ -148,7 +148,7 @@ public class SimpleEncryption extends BaseEncryption {
         }
     }
 
-    public static SimpleEncryption generateKey(EntityModel entity, String[] table) {
+    public static SimpleEncryption generateKey(EntityModel<SimpleEncryption> entity, String[] table) {
         Integer[] order;
         try {
             order = Arrays.stream(table).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new);

@@ -1,13 +1,14 @@
 package encryption.commons.net;
 
+import encryption.commons.crypt.BaseEncryption;
 import encryption.rearrange.SimpleEncryption;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public abstract class EntityModel {
-    protected SimpleEncryption key;
+public abstract class EntityModel<KEY extends BaseEncryption> {
+    protected KEY key;
     protected Socket clientSocket;
     protected PrintWriter out;
     protected BufferedReader in;
@@ -28,11 +29,11 @@ public abstract class EntityModel {
      */
     protected abstract void setRandomKeyResponse(String msg);
 
-    public SimpleEncryption getKey() {
+    public KEY getKey() {
         return key;
     }
 
-    public void setKey(SimpleEncryption key) {
+    public void setKey(KEY key) {
         this.key = key;
     }
 }

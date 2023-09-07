@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import static encryption.rearrange.GlobalConfiguration.*;
 
-public class Client extends EntityModel {
+public class Client extends EntityModel<SimpleEncryption> {
     private static Client client;
     // A flag to indicate whether the client has started
     private static boolean started;
