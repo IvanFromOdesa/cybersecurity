@@ -1,7 +1,6 @@
 package encryption.commons.net;
 
 import encryption.commons.crypt.BaseEncryption;
-import encryption.rearrange.SimpleEncryption;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
