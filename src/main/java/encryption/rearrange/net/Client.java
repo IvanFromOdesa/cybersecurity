@@ -40,6 +40,7 @@ public class Client extends EntityModel {
             clientSocket = new Socket(IP, port);
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            started = true;
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
@@ -101,7 +102,6 @@ public class Client extends EntityModel {
     public void startOnDemand() {
         if (client != null && !started) {
             client.start(PORT);
-            started = true;
         }
     }
 

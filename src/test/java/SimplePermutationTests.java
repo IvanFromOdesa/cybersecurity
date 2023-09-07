@@ -38,8 +38,6 @@ public class SimplePermutationTests {
 
     @Test
     void shouldCommunicateSuccess() {
-        System.out.println("Client: " + client.getKey());
-        System.out.println("Server: " + server.getKey());
         assertSentEqualsResponse(client);
     }
 
