@@ -20,7 +20,6 @@ public abstract class EntityModel {
      * A command that is used to generate a key from the client input.
      * @param msg
      */
-
     protected abstract void setGivenKeyResponse(String msg);
 
     /**

@@ -117,15 +117,14 @@ public class SimpleEncryption extends BaseEncryption {
                 // Sampl, etext, .ewrq
                 return res.toString();
             }).toList();
-            // -> Sampletext.ewrq -> Sample text.
-            return withMetaData(String.join("", result), key);
+            // -> Sampletext.ewrq
+            String joined = String.join("", result);
+            // -> Sample text.
+            return key.isNullMetaData() ? joined : withMetaData(joined, key);
         }
 
         private static String withMetaData(String msg, SimpleEncryption key) {
             try {
-                if (key.isNullMetaData()) {
-                    return msg;
-                }
                 StringBuilder res = new StringBuilder(msg);
                 String metaData = key.getMetaData();
                 String whitespaces = metaData.substring(metaData.indexOf(DOLLAR_SIGN) + 1, metaData.lastIndexOf(HASH_SIGN));
