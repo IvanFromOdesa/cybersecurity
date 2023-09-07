@@ -15,6 +15,19 @@ import static encryption.rearrange.GlobalConfiguration.*;
 
 public class Server extends EntityModel {
     private ServerSocket serverSocket;
+    private static Server server;
+
+    public static Server getInstance() {
+        if (server == null) {
+            server = new Server();
+            server.setKey(STANDARD_KEY);
+        }
+        return server;
+    }
+
+    private Server() {
+
+    }
 
     @Override
     public void start(int port) {
@@ -44,7 +57,7 @@ public class Server extends EntityModel {
                         out.println(SUCCESS);
                     }
                 } else {
-                    String decryptedMsg = SimpleEncryption.Decryptor.decrypt(msg, key);
+                    String decryptedMsg = new SimpleEncryption.Decryptor().decrypt(msg, key);
                     System.out.println("Sending decrypted message back...");
                     out.println(decryptedMsg);
                     System.out.println("Sent: " + decryptedMsg);
@@ -115,13 +128,7 @@ public class Server extends EntityModel {
     }
 
     public static void main(String[] args) {
-        Server server = prepareServer();
+        Server server = getInstance();
         server.start(PORT);
-    }
-
-    private static Server prepareServer() {
-        Server server = new Server();
-        server.setKey(STANDARD_KEY);
-        return server;
     }
 }

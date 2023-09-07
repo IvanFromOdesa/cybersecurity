@@ -14,12 +14,18 @@ import static encryption.rearrange.GlobalConfiguration.*;
 
 public class Client extends EntityModel {
     private static Client client;
+    // A flag to indicate whether the client has started
+    private static boolean started;
+
+    /**
+     * Singleton client.
+     * @return new client instance if null, otherwise an existing client
+     */
 
     public static Client getInstance() {
         if (client == null) {
             client = new Client();
             client.setKey(STANDARD_KEY);
-            client.start(PORT);
         }
         return client;
     }
@@ -66,6 +72,7 @@ public class Client extends EntityModel {
         String msg;
         while ((msg = scanner.nextLine()) != null) {
             Client client = getInstance();
+            client.startOnDemand();
             if (msg.startsWith(EXCLAMATION_MARK)) {
                 if (msg.contains(SET_KEY)) {
                     client.setGivenKeyResponse(msg);
@@ -91,6 +98,13 @@ public class Client extends EntityModel {
         client.stop();
     }
 
+    public void startOnDemand() {
+        if (client != null && !started) {
+            client.start(PORT);
+            started = true;
+        }
+    }
+
     @Override
     protected void setGivenKeyResponse(String msg) {
         setKeyResponse(msg);
@@ -106,14 +120,18 @@ public class Client extends EntityModel {
         if (response.contains(ERROR_KEY)) {
             System.out.println(response.replace(ERROR_KEY + " ", ""));
         } else {
-            SimpleEncryption key = client.generateKey(getTable(response));
+            SimpleEncryption key = client.generateKey(response);
             client.setKey(key);
             System.out.println("Key set.");
         }
     }
 
+    public SimpleEncryption generateKey(String msg) {
+        return generateKey(getTable(msg));
+    }
+
     private static String encrypt(String msg, SimpleEncryption key) {
-        return SimpleEncryption.Encryptor.encrypt(msg, key);
+        return new SimpleEncryption.Encryptor().encrypt(msg, key);
     }
 
     private static String prepareMetaData(String msg) {

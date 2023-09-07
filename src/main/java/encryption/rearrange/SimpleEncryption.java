@@ -1,5 +1,9 @@
 package encryption.rearrange;
 
+import encryption.commons.BaseEncryption;
+import encryption.commons.IDecryptor;
+import encryption.commons.IEncryptor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +17,7 @@ import java.util.stream.Collectors;
 
 import static encryption.rearrange.GlobalConfiguration.*;
 
-public final class SimpleEncryption {
+public class SimpleEncryption extends BaseEncryption {
     private final short degree;
     private final Set<Integer> sequence;
     // Contains idx of whitespaces and the length of the string
@@ -24,13 +28,14 @@ public final class SimpleEncryption {
         this.sequence = sequence;
     }
 
-    public static class Encryptor {
+    public static class Encryptor implements IEncryptor<SimpleEncryption> {
         /**
          * Encrypts message using the order defined in the key.
          * Adds garbage chars to the end of the string if needed.
          * @return encrypted string
          */
-        public static String encrypt(String msg, SimpleEncryption key) {
+        @Override
+        public String encrypt(String msg, SimpleEncryption key) {
             // Sample text.
             // TABLE -> 3, 4, 5, 1, 2
             List<String> subs = new ArrayList<>();
@@ -89,13 +94,14 @@ public final class SimpleEncryption {
         }
     }
 
-    public static class Decryptor {
+    public static class Decryptor implements IDecryptor<SimpleEncryption> {
         /*
          * Get the characters one by indexes.
          * MESPLA -> 3, 6, 1, 4, 5, 2
          * Start by getting the 3rd "S", then the 6th "A" etc.
          */
-        public static String decrypt(String msg, SimpleEncryption key) {
+        @Override
+        public String decrypt(String msg, SimpleEncryption key) {
             List<String> subs = new ArrayList<>();
             // lpSamtxeteqr.ew -> lpSam, txete, eqr.ew
             divideIntoSubstrings(msg, subs, key.degree());
