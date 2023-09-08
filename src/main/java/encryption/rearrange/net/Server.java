@@ -108,8 +108,9 @@ public class Server extends EntityModel<SimpleEncryption> {
                 res.add(o);
             }
         }
+        SimpleEncryption oldKey = key;
         key = SimpleEncryption.generateKey(this, res.toArray(String[]::new));
-        if (key == STANDARD_KEY) {
+        if (key == oldKey) {
             out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
             System.out.println("Key set.");
