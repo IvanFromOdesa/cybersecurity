@@ -45,7 +45,7 @@ public class SimpleEncryption extends BaseEncryption {
             // Sampletext.
             msg = String.join("", msg.split(WHITESPACE));
             // Sampletext.ewrq
-            msg = addGarbageIfNeeded(msg, degree);
+            msg = addGarbageIfNeeded(new StringBuilder(msg), degree);
             // Sampl, etext, .ewrq
             divideIntoSubstrings(msg, subs, degree);
 
@@ -81,18 +81,18 @@ public class SimpleEncryption extends BaseEncryption {
             return res.toString();
         }
 
-        private static String addGarbageIfNeeded(String msg, short degree) {
-            int remains = msg.length() % degree;
+        private static String addGarbageIfNeeded(StringBuilder sb, short degree) {
+            int remains = sb.length() % degree;
 
             if (remains == 0) {
-                return msg;
+                return sb.toString();
             }
 
             Random r = new Random();
             char c = (char) (r.nextInt(26) + 'a');
 
-            msg += c;
-            return addGarbageIfNeeded(msg, degree);
+            sb.append(c);
+            return addGarbageIfNeeded(sb, degree);
         }
     }
 
