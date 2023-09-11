@@ -1,7 +1,7 @@
-package encryption.rearrange.net;
+package encryption.permutation.net;
 
 import encryption.commons.net.EntityModel;
-import encryption.rearrange.SimpleEncryption;
+import encryption.permutation.SimpleEncryption;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import static encryption.rearrange.GlobalConfiguration.*;
+import static encryption.permutation.GlobalConfiguration.*;
 
 public class Server extends EntityModel<SimpleEncryption> {
     private ServerSocket serverSocket;
@@ -34,14 +34,14 @@ public class Server extends EntityModel<SimpleEncryption> {
     public void start(int port) {
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server has started on port: " + PORT);
-            System.out.println("Waiting for client's messages...");
+            logInfo.accept("Server has started on port: " + PORT);
+            logInfo.accept("Waiting for client's messages...");
             clientSocket = serverSocket.accept();
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String msg;
             while ((msg = in.readLine()) != null) {
-                System.out.println("Message from the client: " + msg);
+                logInfo.accept("Message from the client: " + msg);
                 if (msg.startsWith(EXCLAMATION_MARK)) {
                     if (AVAILABLE_COMMANDS.stream().noneMatch(msg::contains)) {
                         // Even if the client gets modified, the server won't proceed
@@ -51,7 +51,7 @@ public class Server extends EntityModel<SimpleEncryption> {
                     } else if (msg.contains(RANDOM_KEY)) {
                         setRandomKeyResponse(msg);
                     } else if (msg.contains(STOP_WORD)) {
-                        System.out.println("Server shutdown...");
+                        logInfo.accept("Server shutdown...");
                         break;
                     } else if (msg.contains(META_DATA) && key.isNullMetaData()) {
                         key.setMetaData(msg.replace(META_DATA, ""));
@@ -59,14 +59,14 @@ public class Server extends EntityModel<SimpleEncryption> {
                     }
                 } else {
                     String decryptedMsg = new SimpleEncryption.Decryptor().decrypt(msg, key);
-                    System.out.println("Sending decrypted message back...");
+                    logInfo.accept("Sending decrypted message back...");
                     out.println(decryptedMsg);
-                    System.out.println("Sent: " + decryptedMsg);
+                    logInfo.accept("Sent: " + decryptedMsg);
                 }
             }
             stop();
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            logError.accept(e.getMessage());
         }
     }
 
@@ -78,7 +78,7 @@ public class Server extends EntityModel<SimpleEncryption> {
         if (key == oldKey) {
             out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
-            System.out.println("Key set.");
+            logInfo.accept("Key set.");
             out.println(Arrays.toString(key.sequence().toArray()));
         }
     }
@@ -93,11 +93,11 @@ public class Server extends EntityModel<SimpleEncryption> {
                 degree = Integer.parseInt(msg.replace(RANDOM_KEY + WHITESPACE, ""));
             } catch (NumberFormatException e) {
                 out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
-                System.err.println(e.getMessage());
+                logError.accept(e.getMessage());
                 return;
             }
         } else {
-            System.out.println("Generating with a random degree...");
+            logInfo.accept("Generating with a random degree...");
             degree = random.nextInt(MIN_DEGREE, MAX_DEGREE + 1);
         }
         res = new LinkedList<>();
@@ -113,7 +113,7 @@ public class Server extends EntityModel<SimpleEncryption> {
         if (key == oldKey) {
             out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
-            System.out.println("Key set.");
+            logInfo.accept("Key set.");
             out.println(Arrays.toString(key.sequence().toArray()));
         }
     }
@@ -126,7 +126,7 @@ public class Server extends EntityModel<SimpleEncryption> {
             clientSocket.close();
             serverSocket.close();
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            logError.accept(e.getMessage());
         }
     }
 

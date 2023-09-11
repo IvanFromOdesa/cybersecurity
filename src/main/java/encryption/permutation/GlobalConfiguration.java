@@ -1,4 +1,4 @@
-package encryption.rearrange;
+package encryption.permutation;
 
 import java.util.Arrays;
 import java.util.HashSet;

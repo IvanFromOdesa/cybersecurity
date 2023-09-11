@@ -1,11 +1,11 @@
-import encryption.rearrange.SimpleEncryption;
-import encryption.rearrange.net.Client;
-import encryption.rearrange.net.Server;
+import encryption.permutation.SimpleEncryption;
+import encryption.permutation.net.Client;
+import encryption.permutation.net.Server;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static encryption.rearrange.GlobalConfiguration.*;
+import static encryption.permutation.GlobalConfiguration.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

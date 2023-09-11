@@ -5,12 +5,15 @@ import encryption.commons.crypt.BaseEncryption;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.function.Consumer;
 
 public abstract class EntityModel<KEY extends BaseEncryption> {
     protected KEY key;
     protected Socket clientSocket;
     protected PrintWriter out;
     protected BufferedReader in;
+    protected static Consumer<String> logInfo = System.out::println;
+    protected static Consumer<String> logError = System.err::println;
 
     public abstract void stop();
 

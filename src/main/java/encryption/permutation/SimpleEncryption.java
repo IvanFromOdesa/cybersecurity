@@ -1,4 +1,4 @@
-package encryption.rearrange;
+package encryption.permutation;
 
 import encryption.commons.crypt.BaseEncryption;
 import encryption.commons.crypt.IDecryptor;
@@ -17,7 +17,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static encryption.rearrange.GlobalConfiguration.*;
+import static encryption.permutation.GlobalConfiguration.*;
 
 public class SimpleEncryption extends BaseEncryption {
     private final short degree;
