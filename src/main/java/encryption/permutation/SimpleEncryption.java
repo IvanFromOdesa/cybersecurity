@@ -5,17 +5,8 @@ import encryption.commons.crypt.IDecryptor;
 import encryption.commons.crypt.IEncryptor;
 import encryption.commons.net.EntityModel;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static encryption.permutation.GlobalConfiguration.*;
 
@@ -51,16 +42,16 @@ public class SimpleEncryption extends BaseEncryption {
 
             List<String> result = subs.stream().map(sub -> {
                 char[] chars = sub.toCharArray();
-                Map<Integer, Character> res = new TreeMap<>();
+                StringBuilder res = new StringBuilder();
 
                 List<Integer> order = new ArrayList<>(key.sequence());
 
-                for (int i = 0; i < chars.length; i++) {
-                    res.put(order.get(i), chars[i]);
+                for (int i = 1; i <= chars.length; i++) {
+                    res.append(chars[order.indexOf(i)]);
                 }
 
                 // Sampl -> lpSam, etext -> txete, .ewrq -> qr.ew
-                return res.values().stream().map(Object::toString).collect(Collectors.joining());
+                return res.toString();
             }).toList();
 
             // -> lpSamtxeteqr.ew
