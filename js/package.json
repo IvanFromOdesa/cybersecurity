@@ -1,0 +1,14 @@
+{
+  "name": "proxy",
+  "version": "1.0.0",
+  "dependencies": {
+    "node-core": "^1.0.6",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "dotenv": "^16.3.1"
+  },
+  "scripts": {
+    "start-server": "node modules/permutation/proxy/server.js",
+    "start-client": "node modules/permutation/proxy/client.js"
+  }
+}
