@@ -40,11 +40,11 @@ public class SimpleEncryption extends BaseEncryption {
             // Sampl, etext, .ewrq
             divideIntoSubstrings(msg, subs, degree);
 
+            List<Integer> order = new ArrayList<>(key.sequence());
+
             List<String> result = subs.stream().map(sub -> {
                 char[] chars = sub.toCharArray();
                 StringBuilder res = new StringBuilder();
-
-                List<Integer> order = new ArrayList<>(key.sequence());
 
                 for (int i = 1; i <= chars.length; i++) {
                     res.append(chars[order.indexOf(i)]);
