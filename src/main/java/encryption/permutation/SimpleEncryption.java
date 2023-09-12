@@ -43,11 +43,10 @@ public class SimpleEncryption extends BaseEncryption {
             List<Integer> order = new ArrayList<>(key.sequence());
 
             List<String> result = subs.stream().map(sub -> {
-                char[] chars = sub.toCharArray();
                 StringBuilder res = new StringBuilder();
 
-                for (int i = 1; i <= chars.length; i++) {
-                    res.append(chars[order.indexOf(i)]);
+                for (int i = 1; i <= sub.length(); i++) {
+                    res.append(sub.charAt(order.indexOf(i)));
                 }
 
                 // Sampl -> lpSam, etext -> txete, .ewrq -> qr.ew
