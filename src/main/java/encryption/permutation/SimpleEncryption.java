@@ -97,12 +97,11 @@ public class SimpleEncryption extends BaseEncryption {
             List<String> subs = new ArrayList<>();
             // lpSamtxeteqr.ew -> lpSam, txete, eqr.ew
             divideIntoSubstrings(msg, subs, key.degree());
+            List<Integer> order = new ArrayList<>(key.sequence());
             List<String> result = subs.stream().map(sub -> {
-                List<Character> chars = sub.chars().mapToObj(c -> (char) c).toList();
-                List<Integer> order = new ArrayList<>(key.sequence());
                 StringBuilder res = new StringBuilder();
                 for (Integer index : order) {
-                    res.append(chars.get(index - 1));
+                    res.append(sub.charAt(index - 1));
                 }
                 // Sampl, etext, .ewrq
                 return res.toString();
