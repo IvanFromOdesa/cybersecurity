@@ -1,6 +1,8 @@
 const {ENV_PATH} = require("../config");
 const EVT_MSG = 'msg';
 const EVT_METADATA = 'meta';
+const EVT_KEY = '!key';
+const WHITESPACE = ' ';
 const DOLLAR = '$';
 const SEPARATOR = '/';
 const HASH = '#';
@@ -51,6 +53,10 @@ const EVENT_HANDLER = {
         return DOLLAR.concat(indexesOf(msg, /\s/g).join(SEPARATOR).concat(HASH, msg.length));
     },
 
+    generateKey: function (msg) {
+        return msg.substring(EVT_KEY.length + 1).split(WHITESPACE);
+    },
+
     decrypt: function (msg, key, metadata) {
 
         const restoreSubstringWithKey = (str, arr) => {
@@ -68,7 +74,9 @@ const EVENT_HANDLER = {
         const parseMetadata = (msg, metaData) => {
             const size = metaData.substring(metaData.indexOf(HASH) + 1);
             metaData = metaData.substring(0, metaData.indexOf(HASH));
-            metaData.slice(1).split(SEPARATOR).forEach(i => msg = insertWhitespace(msg, i));
+            if(metaData !== DOLLAR) {
+                metaData.slice(1).split(SEPARATOR).forEach(i => msg = insertWhitespace(msg, i));
+            }
             return msg.substring(0, size);
         }
 
@@ -85,6 +93,7 @@ const getDefaultKey = () => {
 module.exports = {
     EVT_MSG,
     EVT_METADATA,
+    EVT_KEY,
     EVENT_HANDLER,
     getDefaultKey
 }
