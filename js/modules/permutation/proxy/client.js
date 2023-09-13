@@ -1,6 +1,6 @@
 const io = require('socket.io-client')
 const {CLIENT_HOST, STOP_WORD} = require("../../config");
-const {EVT_MSG, EVENT_HANDLER, getDefaultKey} = require("../encryption");
+const {EVT_MSG, EVENT_HANDLER, getDefaultKey, EVT_METADATA} = require("../encryption");
 const readline = require('readline');
 const {LOG_COLOR, colours} = require('../styling')
 
@@ -22,6 +22,7 @@ const asyncReadLine = (socket) => {
             return rl.close();
         }
         clientMsg = answer;
+        socket.emit(EVT_METADATA, EVENT_HANDLER.createMetaData(clientMsg));
         socket.emit(EVT_MSG, EVENT_HANDLER.encrypt(clientMsg, key));
     });
 }

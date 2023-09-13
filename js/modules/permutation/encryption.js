@@ -1,7 +1,12 @@
 const {ENV_PATH} = require("../config");
-const EVT_MSG = 'msg'
+const EVT_MSG = 'msg';
+const EVT_METADATA = 'meta';
+const DOLLAR = '$';
+const SEPARATOR = '/';
+const HASH = '#';
 
 const EVENT_HANDLER = {
+
     encrypt : function (msg, key) {
 
         /* 3 1 4 5 2 6
@@ -34,7 +39,19 @@ const EVENT_HANDLER = {
             .map(sub => permutateWithOrder(sub, key)).join('');
     },
 
-    decrypt: function (msg, key) {
+    createMetaData : function (msg) {
+        const indexesOf = (string, regex) => {
+            let match, indexes = [];
+            regex = new RegExp(regex);
+            while (match = regex.exec(string)) {
+                indexes.push(match.index);
+            }
+            return indexes;
+        }
+        return DOLLAR.concat(indexesOf(msg, /\s/g).join(SEPARATOR).concat(HASH, msg.length));
+    },
+
+    decrypt: function (msg, key, metadata) {
 
         const restoreSubstringWithKey = (str, arr) => {
             let res = '';
@@ -44,8 +61,19 @@ const EVENT_HANDLER = {
             return res;
         }
 
-        return msg.match(RegExp(`.{1,${key.length}}`, 'g'))
-            .map(sub => restoreSubstringWithKey(sub, key)).join('');
+        const insertWhitespace = (msg, index) => {
+            return msg.slice(0, index) + " " + msg.slice(index);
+        }
+
+        const parseMetadata = (msg, metaData) => {
+            const size = metaData.substring(metaData.indexOf(HASH) + 1);
+            metaData = metaData.substring(0, metaData.indexOf(HASH));
+            metaData.slice(1).split(SEPARATOR).forEach(i => msg = insertWhitespace(msg, i));
+            return msg.substring(0, size);
+        }
+
+        const res = msg.match(RegExp(`.{1,${key.length}}`, 'g')).map(sub => restoreSubstringWithKey(sub, key)).join('');
+        return metadata ? parseMetadata(res, metadata) : res;
     }
 }
 
@@ -56,6 +84,7 @@ const getDefaultKey = () => {
 
 module.exports = {
     EVT_MSG,
+    EVT_METADATA,
     EVENT_HANDLER,
     getDefaultKey
 }
