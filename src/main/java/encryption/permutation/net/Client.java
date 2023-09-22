@@ -1,22 +1,26 @@
 package encryption.permutation.net;
 
-import encryption.commons.net.EntityModel;
-import encryption.permutation.SimpleEncryption;
+import encryption.commons.log.MessageLogger;
+import encryption.commons.net.CryptExchange;
+import encryption.commons.net.SocketModel;
+import encryption.permutation.PermutationEncryption;
+import encryption.permutation.PermutationEncryptionHelper;
+import encryption.permutation.PermutationRqData;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.Scanner;
-import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 
-import static encryption.permutation.GlobalConfiguration.*;
+import static encryption.permutation.Configuration.*;
 
-public class Client extends EntityModel<SimpleEncryption> {
+public class Client extends SocketModel<PermutationEncryption, PermutationRqData> implements CryptExchange<PermutationEncryption, PermutationRqData> {
     private static Client client;
     // A flag to indicate whether the client has started
     private static boolean started;
+    private static boolean needsKey;
 
     /**
      * Singleton client.
@@ -26,35 +30,39 @@ public class Client extends EntityModel<SimpleEncryption> {
     public static Client getInstance() {
         if (client == null) {
             client = new Client();
-            client.setKey(STANDARD_KEY);
+            Optional<PermutationEncryption> key = client.encryptionHelper.getDefault(PROPERTIES);
+            if (key.isEmpty()) {
+                client.logger.warning("Error reading key. Will generate / get a random key when needed.");
+                needsKey = true;
+            } else {
+                client.setKey(key.get());
+                client.logger.info("Default key set.");
+            }
         }
         return client;
     }
 
-    private Client() {
+    @Override
+    public SocketModel<PermutationEncryption, PermutationRqData> getEntity() {
+        return getInstance();
+    }
 
+    private Client() {
+        // Only needs encryptor
+        encryptor = new PermutationEncryption.Encryptor();
+        encryptionHelper = new PermutationEncryptionHelper();
     }
 
     @Override
     public void start(int port) {
         try {
-            clientSocket = new Socket(IP, port);
+            clientSocket = new Socket(PROPERTIES.get("ip.address"), port);
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             started = true;
         } catch (Exception e) {
-            logError.accept(e.getMessage());
+            client.logger.severe(e.getMessage());
         }
-    }
-
-    public String sendMessage(String msg) {
-        try {
-            out.println(msg);
-            return in.readLine();
-        } catch (Exception e) {
-            logError.accept(e.getMessage());
-        }
-        return "";
     }
 
     @Override
@@ -64,86 +72,81 @@ public class Client extends EntityModel<SimpleEncryption> {
             out.close();
             clientSocket.close();
         } catch (Exception e) {
-            logError.accept(e.getMessage());
+            client.logger.severe(e.getMessage());
         }
     }
 
     public static void main(String[] args) {
+        getUserInputRecursively();
+        client.stop();
+    }
+
+    private static void getUserInputRecursively() {
         Scanner scanner = new Scanner(System.in);
-        logInfo.accept("Input the message to the server: ");
+        MessageLogger.info("Input the message to the server: ");
         String msg;
         while ((msg = scanner.nextLine()) != null) {
             Client client = getInstance();
             client.startOnDemand();
             if (msg.startsWith(EXCLAMATION_MARK)) {
                 if (msg.contains(SET_KEY)) {
-                    client.setGivenKeyResponse(msg);
+                    client.setGivenKeyResponse(new PermutationRqData(msg));
                 } else if (msg.contains(RANDOM_KEY)) {
-                    client.setRandomKeyResponse(msg);
+                    client.setRandomKeyResponse(new PermutationRqData(msg));
                 } else if (STOP_WORD.equals(msg)) {
-                    client.sendMessage(msg);
-                    logInfo.accept("Client shutdown...");
+                    client.sendMessageTwoWay(msg);
+                    client.logger.info("Client shutdown...");
                     break;
                 }
             } else {
-                String status = client.sendMessage(META_DATA + prepareMetaData(msg));
+                String status = client.sendMessageTwoWay(META_DATA + PermutationEncryption.Encryptor.prepareMetaData(msg));
                 if (SUCCESS.equals(status)) {
-                    String encrypted = encrypt(msg, client.getKey());
-                    logInfo.accept("Sending the message to the server...");
-                    String response = client.sendMessage(encrypted);
-                    logInfo.accept("Response from the server: " + response);
+                    String encrypted = client.encryptor.encrypt(msg, client.getKey());
+                    client.logger.info("Sending the message to the server...");
+                    String response = client.sendMessageTwoWay(encrypted);
+                    client.logger.info("Response from the server: " + response);
                 } else if (status.contains(ERROR_KEY)) {
-                    logInfo.accept(status.replace(ERROR_KEY + WHITESPACE, ""));
+                    client.logger.severe(status.replace(ERROR_KEY + WHITESPACE, ""));
                 }
             }
         }
-        client.stop();
     }
 
     public void startOnDemand() {
         if (client != null && !started) {
-            client.start(PORT);
+            client.startIfValidPort();
+            if (needsKey) {
+                setRandomKeyResponse(new PermutationRqData(RANDOM_KEY));
+                needsKey = false;
+            }
         }
     }
 
     @Override
-    protected void setGivenKeyResponse(String msg) {
-        setKeyResponse(msg);
+    public void setGivenKeyResponse(PermutationRqData rqData) {
+        setKeyResponse(rqData.getToSend());
     }
 
     @Override
-    protected void setRandomKeyResponse(String msg) {
-        setKeyResponse(msg);
+    public void setRandomKeyResponse(PermutationRqData rqData) {
+        setKeyResponse(rqData.getToSend());
     }
 
     private void setKeyResponse(String msg) {
-        String response = client.sendMessage(msg);
+        String response = client.sendMessageTwoWay(msg);
         if (response.contains(ERROR_KEY)) {
-            logInfo.accept(response.replace(ERROR_KEY + " ", ""));
-        } else {
-            SimpleEncryption key = client.generateKey(response);
-            client.setKey(key);
-            logInfo.accept("Key set.");
+            logger.severe(response.replace(ERROR_KEY + " ", ""));
+        } else if (SUCCESS.equals(response)) {
+            sendMessageOneWay("OK");
+            PermutationEncryption newKey = deserializeKey();
+            if (newKey == key) {
+                // Should not get here
+                logger.warning("Cannot read transmitted key.");
+                client.stop();
+            } else {
+                client.setKey(newKey);
+                logger.info("Key set: " + newKey.sequence());
+            }
         }
-    }
-
-    public SimpleEncryption generateKey(String msg) {
-        return SimpleEncryption.generateKey(this, getTable(msg));
-    }
-
-    private static String encrypt(String msg, SimpleEncryption key) {
-        return new SimpleEncryption.Encryptor().encrypt(msg, key);
-    }
-
-    private static String prepareMetaData(String msg) {
-        return SimpleEncryption.Encryptor.prepareMetaData(msg);
-    }
-
-    private static String[] getTable(String s) {
-        return Pattern.compile("\\d+")
-                .matcher(s)
-                .results()
-                .map(MatchResult::group)
-                .toArray(String[]::new);
     }
 }

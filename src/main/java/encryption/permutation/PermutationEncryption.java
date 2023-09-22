@@ -3,38 +3,37 @@ package encryption.permutation;
 import encryption.commons.crypt.BaseEncryption;
 import encryption.commons.crypt.IDecryptor;
 import encryption.commons.crypt.IEncryptor;
-import encryption.commons.net.EntityModel;
+import encryption.commons.log.MessageLogger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static encryption.permutation.GlobalConfiguration.*;
+import static encryption.permutation.Configuration.*;
 
-public class SimpleEncryption extends BaseEncryption {
+public class PermutationEncryption extends BaseEncryption {
     private final short degree;
     private final Set<Integer> sequence;
     // Contains idx of whitespaces and the length of the string
     private String metaData;
 
-    public SimpleEncryption(short degree, Set<Integer> sequence) {
+    public PermutationEncryption(short degree, Set<Integer> sequence) {
         this.degree = degree;
         this.sequence = sequence;
     }
 
-    public static class Encryptor implements IEncryptor<SimpleEncryption> {
+    public static class Encryptor implements IEncryptor<PermutationEncryption> {
         /**
          * Encrypts message using the order defined in the key.
          * Adds garbage chars to the end of the string if needed.
          * @return encrypted string
          */
         @Override
-        public String encrypt(String msg, SimpleEncryption key) {
+        public String encrypt(String msg, PermutationEncryption key) {
             // Sample text.
             // TABLE -> 3, 4, 5, 1, 2
             List<String> subs = new ArrayList<>();
@@ -92,14 +91,14 @@ public class SimpleEncryption extends BaseEncryption {
         }
     }
 
-    public static class Decryptor implements IDecryptor<SimpleEncryption> {
+    public static class Decryptor implements IDecryptor<PermutationEncryption> {
         /*
          * Get the characters one by indexes.
          * MESPLA -> 3, 6, 1, 4, 5, 2
          * Start by getting the 3rd "S", then the 6th "A" etc.
          */
         @Override
-        public String decrypt(String msg, SimpleEncryption key) {
+        public String decrypt(String msg, PermutationEncryption key) {
             List<String> subs = new ArrayList<>();
             // lpSamtxeteqr.ew -> lpSam, txete, eqr.ew
             divideIntoSubstrings(msg, subs, key.degree());
@@ -118,7 +117,7 @@ public class SimpleEncryption extends BaseEncryption {
             return key.isNullMetaData() ? joined : withMetaData(joined, key);
         }
 
-        private static String withMetaData(String msg, SimpleEncryption key) {
+        private static String withMetaData(String msg, PermutationEncryption key) {
             try {
                 StringBuilder res = new StringBuilder(msg);
                 String metaData = key.getMetaData();
@@ -131,7 +130,7 @@ public class SimpleEncryption extends BaseEncryption {
                 key.clearMetaData();
                 return res.substring(0, Integer.parseInt(s));
             } catch (Exception e) {
-                System.err.println(e.getMessage());
+                MessageLogger.error(e);
                 return msg;
             }
         }
@@ -141,18 +140,6 @@ public class SimpleEncryption extends BaseEncryption {
         for (int i = 0; i < msg.length(); i += degree) {
             subs.add(msg.substring(i, Math.min(msg.length(), i + degree)));
         }
-    }
-
-    public static SimpleEncryption generateKey(EntityModel<SimpleEncryption> entity, String[] table) {
-        Integer[] order;
-        try {
-            order = Arrays.stream(table).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new);
-        } catch (NumberFormatException e) {
-            System.err.println("Error generating a key.");
-            return entity.getKey();
-        }
-        System.out.println("Key generated successfully: " + Arrays.toString(order));
-        return new SimpleEncryption((short) order.length, new LinkedHashSet<>(Arrays.asList(order)));
     }
 
     public short degree() {
@@ -184,7 +171,7 @@ public class SimpleEncryption extends BaseEncryption {
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (SimpleEncryption) obj;
+        var that = (PermutationEncryption) obj;
         return this.degree == that.degree &&
                 Objects.equals(this.sequence, that.sequence);
     }

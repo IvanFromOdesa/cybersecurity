@@ -1,4 +1,6 @@
 package encryption.commons.crypt;
 
-public abstract class BaseEncryption {
+import java.io.Serializable;
+
+public abstract class BaseEncryption implements Serializable {
 }

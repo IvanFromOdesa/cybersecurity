@@ -2,7 +2,6 @@ const {PORT, CLIENT_HOST, LOG} = require("../../config");
 const {EVT_MSG, EVENT_HANDLER, getDefaultKey, EVT_METADATA, EVT_KEY} = require("../encryption");
 const {LOG_COLOR} = require("../styling");
 
-// TODO: client's id -> encryption key to his msg
 const clientKeys = new Map();
 const keysMetadata = new Map();
 clientKeys.set(-1, getDefaultKey());

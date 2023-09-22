@@ -1,120 +1,117 @@
 package encryption.permutation.net;
 
-import encryption.commons.net.EntityModel;
-import encryption.permutation.SimpleEncryption;
+import encryption.commons.net.CryptExchange;
+import encryption.commons.net.SocketModel;
+import encryption.permutation.PermutationEncryption;
+import encryption.permutation.PermutationEncryptionHelper;
+import encryption.permutation.PermutationRqData;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.Optional;
+import java.util.function.Supplier;
 
-import static encryption.permutation.GlobalConfiguration.*;
+import static encryption.permutation.Configuration.*;
 
-public class Server extends EntityModel<SimpleEncryption> {
+public class Server extends SocketModel<PermutationEncryption, PermutationRqData> implements CryptExchange<PermutationEncryption, PermutationRqData> {
     private ServerSocket serverSocket;
     private static Server server;
 
     public static Server getInstance() {
         if (server == null) {
             server = new Server();
-            server.setKey(STANDARD_KEY);
+            Optional<PermutationEncryption> key = server.encryptionHelper.getDefault(PROPERTIES);
+            if (key.isPresent()) {
+                server.setKey(key.get());
+                server.logger.info("Default key set.");
+            } else {
+                server.logger.warning("Error reading key. Will generate / get a random key when needed.");
+            }
         }
         return server;
     }
 
-    private Server() {
+    @Override
+    public SocketModel<PermutationEncryption, PermutationRqData> getEntity() {
+        return getInstance();
+    }
 
+    private Server() {
+        decryptor = new PermutationEncryption.Decryptor();
+        encryptionHelper = new PermutationEncryptionHelper();
     }
 
     @Override
     public void start(int port) {
         try {
             serverSocket = new ServerSocket(port);
-            logInfo.accept("Server has started on port: " + PORT);
-            logInfo.accept("Waiting for client's messages...");
+            logger.info("Server has started on port: " + PROPERTIES.get("port"));
+            logger.info("Waiting for client's messages...");
             clientSocket = serverSocket.accept();
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String msg;
             while ((msg = in.readLine()) != null) {
-                logInfo.accept("Message from the client: " + msg);
+                logger.info("Message from the client: " + msg);
                 if (msg.startsWith(EXCLAMATION_MARK)) {
                     if (AVAILABLE_COMMANDS.stream().noneMatch(msg::contains)) {
                         // Even if the client gets modified, the server won't proceed
-                        out.println(ERROR_KEY + " Unrecognized command.");
+                        sendMessageOneWay(ERROR_KEY + " Unrecognized command.");
                     } else if (msg.contains(SET_KEY)) {
-                        setGivenKeyResponse(msg);
+                        setGivenKeyResponse(new PermutationRqData(msg));
                     } else if (msg.contains(RANDOM_KEY)) {
-                        setRandomKeyResponse(msg);
+                        setRandomKeyResponse(new PermutationRqData(msg));
                     } else if (msg.contains(STOP_WORD)) {
-                        logInfo.accept("Server shutdown...");
+                        logger.info("Server shutdown...");
                         break;
                     } else if (msg.contains(META_DATA) && key.isNullMetaData()) {
                         key.setMetaData(msg.replace(META_DATA, ""));
-                        out.println(SUCCESS);
+                        sendMessageOneWay(SUCCESS);
                     }
                 } else {
-                    String decryptedMsg = new SimpleEncryption.Decryptor().decrypt(msg, key);
-                    logInfo.accept("Sending decrypted message back...");
-                    out.println(decryptedMsg);
-                    logInfo.accept("Sent: " + decryptedMsg);
+                    String decryptedMsg = decryptor.decrypt(msg, key);
+                    logger.info("Sending decrypted message back...");
+                    sendMessageOneWay(decryptedMsg);
+                    logger.info("Sent: " + decryptedMsg);
                 }
             }
             stop();
         } catch (Exception e) {
-            logError.accept(e.getMessage());
+            logger.severe(e.getMessage());
         }
     }
 
     @Override
-    protected void setGivenKeyResponse(String msg) {
-        msg = msg.replace(SET_KEY + WHITESPACE, "");
-        SimpleEncryption oldKey = key;
-        key = SimpleEncryption.generateKey(this, msg.split(WHITESPACE));
-        if (key == oldKey) {
-            out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
-        } else {
-            logInfo.accept("Key set.");
-            out.println(Arrays.toString(key.sequence().toArray()));
-        }
+    public void setGivenKeyResponse(PermutationRqData rqData) {
+        rqData.setToSend(rqData.getToSend().replace(SET_KEY + WHITESPACE, ""));
+        setKeyResponse(() -> encryptionHelper.generateKey(rqData).orElseGet(this::getKey));
     }
 
     @Override
-    protected void setRandomKeyResponse(String msg) {
-        List<String> res;
-        Random random = new Random();
-        int degree;
-        if (msg.matches(RANDOM_KEY + WHITESPACE + "\\d+")) {
-            try {
-                degree = Integer.parseInt(msg.replace(RANDOM_KEY + WHITESPACE, ""));
-            } catch (NumberFormatException e) {
-                out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
-                logError.accept(e.getMessage());
-                return;
-            }
+    public void setRandomKeyResponse(PermutationRqData rqData) {
+        setKeyResponse(() -> encryptionHelper.getRandomKey(rqData).orElseGet(this::getKey));
+    }
+
+    private void setKeyResponse(Supplier<PermutationEncryption> supplier) {
+        PermutationEncryption newKey = supplier.get();
+        if (key == newKey) {
+            sendMessageOneWay(ERROR_KEY + " Error while parsing input string. Please, try again.");
         } else {
-            logInfo.accept("Generating with a random degree...");
-            degree = random.nextInt(MIN_DEGREE, MAX_DEGREE + 1);
-        }
-        res = new LinkedList<>();
-        while (res.size() != degree) {
-            int idx = random.nextInt(1, degree + 1);
-            String o = String.valueOf(idx);
-            if (!res.contains(o)) {
-                res.add(o);
+            key = newKey;
+            logger.info("Key set.");
+            if (!sendMessageTwoWay(SUCCESS).isEmpty()) {
+                transmitKey();
             }
         }
-        SimpleEncryption oldKey = key;
-        key = SimpleEncryption.generateKey(this, res.toArray(String[]::new));
-        if (key == oldKey) {
-            out.println(ERROR_KEY + " Error while parsing input string. Please, try again.");
+    }
+
+    private void transmitKey() {
+        if (!serializeKey(key)) {
+            sendMessageOneWay(ERROR_KEY + " Error transmitting a key.");
         } else {
-            logInfo.accept("Key set.");
-            out.println(Arrays.toString(key.sequence().toArray()));
+            logger.info("Key sent.");
         }
     }
 
@@ -126,12 +123,12 @@ public class Server extends EntityModel<SimpleEncryption> {
             clientSocket.close();
             serverSocket.close();
         } catch (Exception e) {
-            logError.accept(e.getMessage());
+            logger.severe(e.getMessage());
         }
     }
 
     public static void main(String[] args) {
         Server server = getInstance();
-        server.start(PORT);
+        server.startIfValidPort();
     }
 }
